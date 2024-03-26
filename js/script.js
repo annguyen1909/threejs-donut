@@ -102,18 +102,18 @@ scene.add(overlay)
 let donut = null
 
 gltfLoader.load(
-    './assets/donut/scene.gltf',
+    './assets/eye/scene.gltf',
     (gltf) => {
         console.log(gltf);
 
         donut = gltf.scene
 
-        const radius = 8.5
+        const radius = 0.0075
 
         donut.position.x = 1.5;
 
-        donut.rotation.x = Math.PI * 0.2
-        donut.rotation.z = Math.PI * 0.15
+        donut.rotation.x = Math.PI * 2.5
+        donut.rotation.z = Math.PI * 0.05
 
         donut.scale.set(radius, radius, radius)
 
@@ -126,14 +126,26 @@ gltfLoader.load(
         console.error(error);
     }
 )
+let targetRotationX = 0;
+let targetRotationY = 0;
+function animate() {
+    requestAnimationFrame(animate);
+  
+    // Interpolate current rotation towards target rotation
+    donut.rotation.x += (targetRotationX - donut.rotation.x) * 0.03;
+    donut.rotation.y += (targetRotationY - donut.rotation.y) * 0.03;
+  
+    // Render the scene
+    renderer.render(scene, camera);
+  }
 
 /**
  * Light
  */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.45)
 scene.add(ambientLight)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 3)
 directionalLight.position.set(1, 2, 0)
 
 directionalLight.castShadow = true
@@ -154,19 +166,19 @@ let scrollY = window.scrollY
 let currentSection = 0
 
 const transformDonut = [{
-        rotationZ: 0.45,
+        rotationZ: Math.PI * 0.05,
         positionX: 1.5
     },
     {
-        rotationZ: -0.45,
+        rotationZ: Math.PI * 0.05,
         positionX: -1.5
     },
     {
-        rotationZ: 0.0314,
+        rotationZ: Math.PI * 0.05,
         positionX: 0
     },
     {
-        rotationZ: 0.0314,
+        rotationZ: Math.PI * 0.05,
         positionX: 0
     },
 ]
@@ -193,7 +205,7 @@ window.addEventListener('scroll', () => {
                 donut.position, {
                     duration: 1.5,
                     ease: 'power2.inOut',
-                    x: transformDonut[currentSection].positionX
+                    x: transformDonut[currentSection].positionX,
                 }
             )
 
@@ -252,8 +264,22 @@ const tick = () => {
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }
+document.addEventListener('mousemove', function(event) {
+    // Calculate normalized mouse position within the window
+    const mouseX = event.clientX / window.innerWidth * 1.2 - 1;
+    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+    // Define the range of rotation for the eye
+    const maxRotationX = 1.2;
+    const maxRotationY = 3;
+  
+    // Calculate target rotation based on mouse position
+    targetRotationX = -maxRotationX * mouseY;
+    targetRotationY = maxRotationY * mouseX;
+  });
 
 tick()
+animate();
 
 /**
  * On Reload
